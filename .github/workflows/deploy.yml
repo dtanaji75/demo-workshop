@@ -1,0 +1,30 @@
+name: Deploy to lightsail
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.16'
+      - name: Install dependencies
+        run: npm install
+      - name: Deploy to AWS Lightsail
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USERNAME }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          port: 22
+          script: |
+            cd /opt/bitnami/apache2/htdocs/demo-workshop
+            git pull origin main
+            npm install
+            pm2 restart all
+            pm2 save
